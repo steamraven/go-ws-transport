@@ -3,6 +3,7 @@
 package websocket
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -109,6 +110,7 @@ func (c *Conn) LocalAddr() net.Addr {
 }
 
 func (c *Conn) RemoteAddr() net.Addr {
+	fmt.Println(c.Conn.RemoteAddr())
 	return NewAddr(c.Conn.RemoteAddr().String())
 }
 
