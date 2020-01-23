@@ -3,6 +3,7 @@ package websocket
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/transport"
@@ -16,9 +17,17 @@ import (
 //
 // Deprecated: use `ma.ProtocolWithCode(ma.P_WS)
 var WsProtocol = ma.ProtocolWithCode(ma.P_WS)
+var WssProtocol = ma.Protocol{
+	Code:  478,
+	Name:  "wss",
+	VCode: ma.CodeToVarint(478),
+}
 
 // WsFmt is multiaddr formatter for WsProtocol
-var WsFmt = mafmt.And(mafmt.TCP, mafmt.Base(ma.P_WS))
+var WsFmt = mafmt.And(mafmt.TCP, mafmt.Or(
+	mafmt.Base(ma.P_WS),
+	mafmt.Base(ma.P_WSS),
+))
 
 // WsCodec is the multiaddr-net codec definition for the websocket transport
 var WsCodec = &manet.NetCodec{
@@ -27,13 +36,28 @@ var WsCodec = &manet.NetCodec{
 	ConvertMultiaddr: ConvertWebsocketMultiaddrToNetAddr,
 	ParseNetAddr:     ParseWebsocketNetAddr,
 }
+var WssCodec = &manet.NetCodec{
+	NetAddrNetworks:  []string{"websocket secure"},
+	ProtocolName:     "wss",
+	ConvertMultiaddr: ConvertWebsocketMultiaddrToNetAddr,
+	ParseNetAddr:     ParseWebsocketNetAddr,
+}
 
 // This is _not_ WsFmt because we want the transport to stick to dialing fully
 // resolved addresses.
-var dialMatcher = mafmt.And(mafmt.IP, mafmt.Base(ma.P_TCP), mafmt.Base(ma.P_WS))
+var WsFmtDial = mafmt.And(mafmt.IP, mafmt.Base(ma.P_TCP), mafmt.Or(
+	mafmt.Base(ma.P_WS),
+	mafmt.Base(ma.P_WSS),
+))
 
 func init() {
+	err := ma.AddProtocol(WssProtocol)
+	if err != nil {
+		panic(fmt.Errorf("error registering websocket secure protocol: %s", err))
+	}
+
 	manet.RegisterNetCodec(WsCodec)
+	manet.RegisterNetCodec(WssCodec)
 }
 
 var _ transport.Transport = (*WebsocketTransport)(nil)
@@ -48,7 +72,7 @@ func New(u *tptu.Upgrader) *WebsocketTransport {
 }
 
 func (t *WebsocketTransport) CanDial(a ma.Multiaddr) bool {
-	return dialMatcher.Matches(a)
+	return WsFmtDial.Matches(a)
 }
 
 func (t *WebsocketTransport) Protocols() []int {
