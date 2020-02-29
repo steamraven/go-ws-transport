@@ -3,7 +3,6 @@ package websocket
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/transport"
@@ -16,11 +15,6 @@ import (
 //
 // Deprecated: use `ma.ProtocolWithCode(ma.P_WS)
 var WsProtocol = ma.ProtocolWithCode(ma.P_WS)
-var WssProtocol = ma.Protocol{
-	Code:  478,
-	Name:  "wss",
-	VCode: ma.CodeToVarint(478),
-}
 
 // WsFmt is multiaddr formatter for WsProtocol
 var WsFmt = mafmt.And(mafmt.TCP, mafmt.Or(
@@ -50,11 +44,6 @@ var WsFmtDial = mafmt.And(mafmt.IP, mafmt.Base(ma.P_TCP), mafmt.Or(
 ))
 
 func init() {
-	err := ma.AddProtocol(WssProtocol)
-	if err != nil {
-		panic(fmt.Errorf("error registering websocket secure protocol: %s", err))
-	}
-
 	manet.RegisterNetCodec(WsCodec)
 	manet.RegisterNetCodec(WssCodec)
 }
@@ -71,7 +60,7 @@ func (t *WebsocketTransport) CanDial(a ma.Multiaddr) bool {
 }
 
 func (t *WebsocketTransport) Protocols() []int {
-	return []int{WsProtocol.Code, WssProtocol.Code}
+	return []int{ma.P_WS, ma.P_WSS}
 }
 
 func (t *WebsocketTransport) Proxy() bool {
