@@ -178,13 +178,17 @@ func getRemoteAddr(val js.Value) net.Addr {
 	}
 }
 
+var includesPortRegex = regexp.MustCompile(`:\d+\b`)
+
 func getRemoteAddrWs(rawURL string) net.Addr {
 	withoutPrefix := strings.TrimPrefix(rawURL, "ws://")
 	withoutSuffix := strings.TrimSuffix(withoutPrefix, "/")
+	includesPort := includesPortRegex.MatchString(withoutSuffix)
+	if !includesPort {
+		return NewAddrWithScheme(withoutSuffix+":80", false)
+	}
 	return NewAddrWithScheme(withoutSuffix, false)
 }
-
-var includesPortRegex = regexp.MustCompile(`:\d+\b`)
 
 func getRemoteAddrWss(rawURL string) net.Addr {
 	withoutPrefix := strings.TrimPrefix(rawURL, "wss://")
