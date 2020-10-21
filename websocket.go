@@ -36,17 +36,11 @@ var WssCodec = &manet.NetCodec{
 	ParseNetAddr:     ParseWebsocketNetAddr,
 }
 
-// This is _not_ WsFmt because we want the transport to stick to dialing fully
-// resolved addresses.
-var WsFmtDial = mafmt.And(mafmt.IP, mafmt.Base(ma.P_TCP), mafmt.Or(
-	mafmt.Base(ma.P_WS),
-	mafmt.Base(ma.P_WSS),
-))
-
 func init() {
 	manet.RegisterNetCodec(WsCodec)
 	manet.RegisterNetCodec(WssCodec)
 }
+
 // Option is the type implemented by functional options.
 //
 // Actual options that one can use vary based on build target environment, i.e.

@@ -11,8 +11,16 @@ import (
 	"github.com/libp2p/go-libp2p-core/transport"
 	tptu "github.com/libp2p/go-libp2p-transport-upgrader"
 	ma "github.com/multiformats/go-multiaddr"
+	mafmt "github.com/multiformats/go-multiaddr-fmt"
 	manet "github.com/multiformats/go-multiaddr/net"
 )
+
+// This is _not_ WsFmt because we want the transport to stick to dialing fully
+// resolved addresses.
+var WsFmtDial = mafmt.And(mafmt.IP, mafmt.Base(ma.P_TCP), mafmt.Or(
+	mafmt.Base(ma.P_WS),
+	mafmt.Base(ma.P_WSS),
+))
 
 // WebsocketTransport is the actual go-libp2p transport
 type WebsocketTransport struct {

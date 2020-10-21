@@ -11,7 +11,25 @@ import (
 	"github.com/libp2p/go-libp2p-core/transport"
 	tptu "github.com/libp2p/go-libp2p-transport-upgrader"
 	ma "github.com/multiformats/go-multiaddr"
+	mafmt "github.com/multiformats/go-multiaddr-fmt"
 	manet "github.com/multiformats/go-multiaddr/net"
+)
+
+//var WsFmtDial = WsFmt
+var WsFmtDial = mafmt.Or(
+	mafmt.And(
+		mafmt.IP, mafmt.Base(ma.P_TCP), mafmt.Base(ma.P_WS),
+	),
+	mafmt.And(
+		mafmt.Or(
+			mafmt.DNS,
+			mafmt.DNS4,
+			mafmt.DNS6,
+			mafmt.Base(ma.P_DNSADDR),
+		),
+		mafmt.Base(ma.P_TCP),
+		mafmt.Base(ma.P_WSS),
+	),
 )
 
 // WebsocketTransport is the actual go-libp2p transport
